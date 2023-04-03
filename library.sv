@@ -291,18 +291,99 @@ endmodule: AdderLayer
 
 module RegisterFile
  #(parameter NUMVALS = 32, WIDTH = 24)
-  (input  logic clock, reset_n, en,
+  (input  logic clock, reset, en,
    input  logic [NUMVALS-1:0][WIDTH-1:0] data_in,
    output logic [NUMVALS-1:0][WIDTH-1:0] data_out);
-   //I un-negated the reset cause we already did in the main
    genvar i;
    generate
     for (i = 0; i < NUMVALS; i++) begin :regs
-      Register #(WIDTH) regi(.D(data_in[i]), .clear(reset_n), .en, .clock,
+      Register #(WIDTH) regi(.D(data_in[i]), .clear(reset), .en, .clock,
                             .Q(data_out[i]));
     end
    endgenerate
 endmodule: RegisterFile
+
+//Specialized file that allows r/w of register file as well as a separate line
+//to for seven-segment display
+//Possible issue of reading/writing select need be different??? matter of use
+module MuxedRegisterFile
+  #(parameter NUMREGS = 8, WIDTH = 16)
+  (input  logic clock, reset, load, 
+   input  logic [$clog2(NUMREGS)-1:0] data_sel, disp_sel,
+   input  logic [WIDTH-1:0] data_in,
+   output logic [WIDTH-1:0] data_out, data_disp);
+   logic [NUMREGS-1:0][WIDTH-1:0] D_in, Q_out;
+   logic [NUMREGS-1:0] reg_load;
+   genvar i;
+   generate
+    for (i = 0; i < NUMVALS; i++) begin :regs
+      Register #(WIDTH) regi(.D(D_in[i]), .clear(reset), .en(reg_load[i]), .clock,
+                            .Q(Q_out[i]));
+    end
+   endgenerate
+   assign reg_load[i] = load;
+   assign D_in[data_sel] = data_in;
+   assign data_out = Q_out[data_sel];
+   assign data_disp = Q_out[disp_sel];
+endmodule: MuxedRegisterFile
+
+//Your average stack data structure in hardware. We will not need to push and pop
+// at the same time, so they are made exclusive. Pops on empty do nothing. 
+//Pushes on full overwrite the oldest stored data
+module Stack
+  #(parameter DEPTH = 4, WIDTH = 16)
+  (input  logic clock, reset, push, pop,
+   input  logic [WIDTH-1:0] data_in,
+   output logic [WIDTH-1:0] data_out);
+   
+   logic [DEPTH-1:0][WIDTH-1:0] stack_data; //Depth 
+   logic [$clog2(DEPTH)-1:0] stack_ptr;
+   logic [$clog2(DEPTH):0] count;
+   logic empty, full;
+
+   assign empty = count == 0;
+   assign full = count == DEPTH; // just for testings
+   //With only a single pointer, the pointer addresses the first availible
+   //free block/slot to be pushed. to Pop of top of stack, decrement pointer 
+   //by one before assigning
+   always_ff @(posedge clock, negedge reset) begin
+    if (reset) begin
+      count <= 'd0;
+      stack_ptr <= 'd0;
+      stack_data <= 'd0;
+    end
+    else if (pop && ~empty) begin
+      stack_ptr <= stack_ptr - 1;
+      data_out <= stack_data[stack_ptr];
+      stack_data[stack_ptr] <= 'd0;
+      count <= count - 1;
+    end
+    else if (push) begin
+      stack_data[stack_ptr] <= data_in;
+      stack_ptr <= stack_ptr + 1;
+      count <= count + 1;
+    end
+  end
+
+endmodule: Stack
+
+module FA4_ALU
+  #(parameter WIDTH)
+  (input logic carry_in,
+   input alu_op op_code,
+   input logic [WIDTH-1:0] op_a, op_b,
+   output logic carry_out,
+   output logic [WIDTH-1:0] res_out);
+
+   always_comb begin
+     case(op_code)
+       ADD: {carry_out, res_out} = op_a + op_b + carry_in;
+       SUB: {carry_out, res_out} = op_a + ~op_b + carry_in;
+       INC: res_out = op_a + 1;
+     endcase
+   end
+
+endmodule: FA4_ALU
 
 module SignExtender
  #(parameter STARTWIDTH = 8, TARGETWIDTH = 16)
