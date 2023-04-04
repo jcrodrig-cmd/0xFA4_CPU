@@ -309,9 +309,11 @@ endmodule: RegisterFile
 module MuxedRegisterFile
   #(parameter NUMREGS = 8, WIDTH = 16)
   (input  logic clock, reset, load, 
-   input  logic [$clog2(NUMREGS)-1:0] data_sel, disp_sel,
+   input  logic [$clog2(NUMREGS)-1:0] data_sel,
+   input  logic [$clog2((NUMREGS/2))-1:0] disp_sel,
    input  logic [WIDTH-1:0] data_in,
-   output logic [WIDTH-1:0] data_out, data_disp);
+   output logic [WIDTH-1:0] data_out,
+   output logic [(WIDTH*2)-1:0] data_disp);
    logic [NUMREGS-1:0][WIDTH-1:0] D_in, Q_out;
    logic [NUMREGS-1:0] reg_load;
    genvar i;
@@ -324,7 +326,8 @@ module MuxedRegisterFile
    assign reg_load[i] = load;
    assign D_in[data_sel] = data_in;
    assign data_out = Q_out[data_sel];
-   assign data_disp = Q_out[disp_sel];
+   // We display registers in pairs to ease on inputs
+   assign data_disp = {Q_out[disp_sel*2], Q_out[(disp_sel*2)+1]};
 endmodule: MuxedRegisterFile
 
 //Your average stack data structure in hardware. We will not need to push and pop
@@ -409,3 +412,31 @@ module ArraySignExtender
   endgenerate
 
 endmodule: ArraySignExtender
+
+//taken from hw2
+module hex_to_sevenseg (
+    input logic [3:0] hexdigit,
+    output logic [7:0] seg
+);
+
+    always_comb begin
+        seg = '1;
+        if (hexdigit == 4'h0) seg = 8'b1100_0000;
+        if (hexdigit == 4'h1) seg = 8'b1111_1001;
+        if (hexdigit == 4'h2) seg = 8'b1010_0100;
+        if (hexdigit == 4'h3) seg = 8'b1011_0000;
+        if (hexdigit == 4'h4) seg = 8'b1001_1001;
+        if (hexdigit == 4'h5) seg = 8'b1001_0010;
+        if (hexdigit == 4'h6) seg = 8'b1000_0010;
+        if (hexdigit == 4'h7) seg = 8'b1111_1000;
+        if (hexdigit == 4'h8) seg = 8'b1000_0000;
+        if (hexdigit == 4'h9) seg = 8'b1001_0000;
+        if (hexdigit == 4'hA) seg = 8'b1000_1000;
+        if (hexdigit == 4'hB) seg = 8'b1000_0011;
+        if (hexdigit == 4'hC) seg = 8'b1100_0110;
+        if (hexdigit == 4'hD) seg = 8'b1010_0001;
+        if (hexdigit == 4'hE) seg = 8'b1000_0110;
+        if (hexdigit == 4'hF) seg = 8'b1000_1110;
+    end
+
+endmodule
