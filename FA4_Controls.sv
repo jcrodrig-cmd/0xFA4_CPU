@@ -1,10 +1,10 @@
 module Controls(
-   input logic carry, clock, reset_L, done,
+   input logic carry_in, clock, reset_L, done,
    input [3:0] instruct_in,
    output controlPts out,
    output opcode_t currState,
    output opcode_t nextState,
-   output logic        start,
+   output logic        start, carry_out,
    output logic        selOut);
 
    always_ff @(posedge clock, negedge reset_L)
@@ -16,15 +16,18 @@ module Controls(
     always_comb begin
       start = 0;
       selOut = 0;
-      case (currState) begin
-        FETCH:
+      case (currState)
+        FETCH1: begin
+
+        end
+        FETCH2:
         DECODE:
         ADD:
         SUB:
         AND:
         OR:
-        
-      end
+
+      endcase
     end
 
 endmodule: Controls

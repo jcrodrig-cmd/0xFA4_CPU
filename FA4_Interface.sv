@@ -5,7 +5,7 @@ module FA4_Interface
    output logic [1:0] display_sel,
    output logic [7:0] display);
 
-   logic [3:0] acc_in, acc_out, temp_in, temp_out, inst_out, pc_in, pc_out;
+   logic [3:0] acc_in, acc_out, temp_in, temp_out, inst_in, inst_out, pc_in, pc_out;
    logic [3:0] stack_in, stack_out, reg_in, reg_out, alu_out;
    logic [7:0] disp_raw;
    logic [8:0] ticks;
@@ -24,10 +24,10 @@ module FA4_Interface
    Register #(1) carry(.D(c_in), .clear(cl_carry), .en(ld_carry), .clock,
                        .Q(c_out));
    // Instruction Register
-   Register #(4) inst(.D(data_in), .clear(cl_inst), .en(ld_inst), .clock,
+   Register #(4) inst(.D(inst_in), .clear(cl_inst), .en(ld_inst), .clock,
                       .Q(inst_out));
    // Program Counter
-   Register #(4) pc(.D(pc_in), .clear(cl_pc), .en(ld_pc), .clock, .Q(pc_out));
+   Register #(12) pc(.D(pc_in), .clear(cl_pc), .en(ld_pc), .clock, .Q(pc_out));
 
    // InstDecoder   decode(.instruction(inst_out));
 
