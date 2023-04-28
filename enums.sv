@@ -7,7 +7,7 @@ typedef enum logic[3:0] { //alu_ops
   PI2 = 4'b1111;
 } alu_op_t;
 
-typedef enum logic[3:0] { //alu_ops
+typedef enum logic[3:0] { //Instruction OPR
   NOP = 4'b0;
   LDM = 4'b1101;
   LD  = 4'b1010;
