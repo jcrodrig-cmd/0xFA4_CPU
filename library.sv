@@ -380,6 +380,8 @@ module FA4_ALU
 
    always_comb begin
      case(op_code)
+       PIN: res_out = op_a + 1;
+       PI2: res_out = op_a + 2;
        ADD: {carry_out, res_out} = op_a + op_b + carry_in;
        SUB: {carry_out, res_out} = op_a + ~op_b + carry_in;
        INC: res_out = op_a + 1;
