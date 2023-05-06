@@ -5,9 +5,9 @@ Julian Rodriguez
 The 0xFA4_CPU is a 4 bit microprocessor inspired by the Intel 4004 CPU.
 ## How it Works
 Architecture Overview
-![](0xFA4_Datapath.pdf)
+![](0xFA4_Datapath.png)
 Controlpath
-![](FA4_Controls_FSM.pdf)
+![](FA4_Controls_FSM.png)
 ## Inputs/Outputs
 INPUTS
 4 Lines for instruction/data entry
